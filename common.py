@@ -1,16 +1,15 @@
 from schema import Schema
 from typing import Optional, List
-from pydantic import BaseModel, AnyUrl
 
 
-class Reference(BaseModel):
+class Reference:
 
     """ A simple object to allow referencing other components in the specification, internally and externally.
     The Reference Object is defined by JSON Reference and follows the same structure, behavior and rules. """
 
     ref: str
 
-class Parameter(BaseModel):
+class Parameter:
 
     """ Describes a parameter included in a channel name """
 
@@ -26,7 +25,7 @@ class Parameter(BaseModel):
         instead, the schema property MUST be used
     """
 
-class ExternalDocumentation(BaseModel):
+class ExternalDocumentation:
 
     description: Optional[str]
     """ A short description of the target documentation. CommonMark syntax can be used for rich text representation. """
@@ -35,7 +34,7 @@ class ExternalDocumentation(BaseModel):
     """ Required. The URL for the target documentation. Value MUST be in the format of a URL."""
 
 
-class Tag(BaseModel):
+class Tag:
 
     name: str
     """Required. The name of the tag."""
