@@ -1,51 +1,129 @@
-from schema import Schema
-from typing import Optional, List
+from typing import Optional
+from util import SpecStringObject, SpecEmptyObject
 
 
-class Reference:
+class SpecParameterObject:
 
-    """ A simple object to allow referencing other components in the specification, internally and externally.
-    The Reference Object is defined by JSON Reference and follows the same structure, behavior and rules. """
+    """Describes a parameter included in a channel name"""
 
-    ref: str
-
-class Parameter:
-
-    """ Describes a parameter included in a channel name """
-
-    description: Optional[str]
-    """A verbose explanation of the parameter. CommonMark syntax can be used for rich text representation"""
-
-    schema: Schema
+    _schema: Optional[SpecStringObject]
     """Definition of the parameter"""
 
-    location: Optional[str]
+    _description: Optional[SpecStringObject]
+    """A verbose explanation of the parameter. CommonMark syntax can be used for rich text representation"""
+
+    _location: Optional[SpecStringObject]
     """ A runtime expression that specifies the location of the parameter value.
         Even when a definition for the target field exists, it MUST NOT be used to validate this parameter but,
         instead, the schema property MUST be used
     """
 
-class ExternalDocumentation:
+    _validation_enabled: bool
 
-    description: Optional[str]
-    """ A short description of the target documentation. CommonMark syntax can be used for rich text representation. """
+    def __init__(
+        self,
+        schema: Optional[str] = None,
+        description: str = None,
+        location: Optional[str] = None,
+        validation_enabled: bool = True,
+    ):
+        self._validation_enabled = validation_enabled
+        self.schema = schema or SpecEmptyObject()
+        self.description = description or SpecEmptyObject()
+        self.location = location or SpecEmptyObject()
 
-    url: AnyUrl
+    @property
+    def schema(self) -> str:
+        return self._schema.value
+
+    @property
+    def description(self) -> str:
+        return self._description.value
+
+    @property
+    def location(self) -> str:
+        return self._location.value
+
+    @property
+    def validation_enabled(self) -> bool:
+        return self._validation_enabled
+
+    @schema.setter
+    def schema(self, value: str):
+        self._schema = SpecStringObject("schema", value, self._validation_enabled)
+        self._schema.validate()
+
+    @description.setter
+    def description(self, value: str):
+        self._description = SpecStringObject(
+            "description", value, self._validation_enabled
+        )
+        self._description.validate()
+
+    @location.setter
+    def location(self, value: str):
+        self._location = SpecStringObject("location", value, self._validation_enabled)
+        self._location.validate()
+
+    def compose(self):
+        return {
+            **self._schema.compose(),
+            **self._description.compose(),
+            **self._location.compose(),
+        }
+
+
+class SpecExternalDocumentationObject:
+
+    _url: SpecStringObject
     """ Required. The URL for the target documentation. Value MUST be in the format of a URL."""
 
+    _description: Optional[SpecStringObject]
+    """ A short description of the target documentation. CommonMark syntax can be used for rich text representation. """
 
-class Tag:
+    _validation_enabled: bool
 
-    name: str
-    """Required. The name of the tag."""
+    def __init__(
+        self, url: str, description: str = None, validation_enabled: bool = True
+    ):
+        self._validation_enabled = validation_enabled
+        self.description = description or SpecEmptyObject()
+        self.url = url
 
-    description: Optional[str]
-    """A short description for the tag. CommonMark syntax can be used for rich text representation."""
+    @property
+    def description(self) -> str:
+        return self._description.value
 
-    externalDocs: Optional[ExternalDocumentation]
-    """Documentation Object	Additional external documentation for this tag."""
+    @property
+    def url(self) -> str:
+        return self._url.value
 
-class CorrelationId:
+    @property
+    def validation_enabled(self) -> bool:
+        return self._validation_enabled
+
+    @description.setter
+    def description(self, value: str):
+        self._description = SpecStringObject(
+            "description", value, self._validation_enabled
+        )
+        self._description.validate()
+
+    @url.setter
+    def url(self, value: str):
+        self._url = SpecStringObject("url", value, self._validation_enabled)
+        self._url.validate()
+
+    def compose(self):
+        return {
+            "externalDocs": {
+                **self._url.compose(),
+                **self._description.compose(),
+            },
+        }
+
+
+class SpecCorrelationIdObject:
 
     description: Optional[str]
     """Optional description of the identifier. CommonMark syntax can be used for rich text representation."""
@@ -54,3 +132,44 @@ class CorrelationId:
     """ Required. runtime expression that specifies the location of the correlation ID.
         $message.header#/MQMD/CorrelId
     """
+
+    _validation_enabled: bool
+
+    def __init__(
+        self, location: str, description: str, validation_enabled: bool = True
+    ):
+        self._validation_enabled = validation_enabled
+        self.description = description or SpecEmptyObject()
+        self.location = location
+
+    @property
+    def description(self) -> str:
+        return self._description.value
+
+    @property
+    def url(self) -> str:
+        return self._url.value
+
+    @property
+    def validation_enabled(self) -> bool:
+        return self._validation_enabled
+
+    @description.setter
+    def description(self, value: str):
+        self._description = SpecStringObject(
+            "description", value, self._validation_enabled
+        )
+        self._description.validate()
+
+    @url.setter
+    def url(self, value: str) -> str:
+        self._url = SpecStringObject("url", value, self._validation_enabled)
+        self._url.validate()
+
+    def compose(self):
+        return {
+            "externalDocs": {
+                self._url.compose(),
+                self._description.compose(),
+            },
+        }

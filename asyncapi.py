@@ -1,7 +1,7 @@
 # 2.0.0
 
 from typing import Optional
-from util import SpecStringObject
+from util import SpecEmptyObject, SpecStringObject
 
 # from schema import Schema
 # from operation_bindings import OperationBinding
@@ -11,7 +11,8 @@ from util import SpecStringObject
 # from channel import Channel
 # from components import Components
 
-from common import Tag, ExternalDocumentation
+from common import SpecExternalDocumentationObject,
+from tags import SpecTagListObject
 
 
 class SpecContactObject:
@@ -48,7 +49,7 @@ class SpecContactObject:
         return self._email.value
 
     @property
-    def validation_enabled(self) -> str:
+    def validation_enabled(self) -> bool:
         return self._validation_enabled
 
     @name.setter
@@ -66,12 +67,12 @@ class SpecContactObject:
         self._email = SpecStringObject("email", value, self._validation_enabled)
         self._email.validate()
 
-    def spec(self):
+    def compose(self):
         return {
             "contact": {
-                self._name.spec(),
-                self._url.spec(),
-                self._email.spec(),
+                self._name.compose(),
+                self._url.compose(),
+                self._email.compose(),
             },
         }
 
@@ -100,7 +101,7 @@ class SpecLicenseObject:
         return self._url.value
 
     @property
-    def validation_enabled(self) -> str:
+    def validation_enabled(self) -> bool:
         return self._validation_enabled
 
     @name.setter
@@ -113,11 +114,11 @@ class SpecLicenseObject:
         self._url = SpecStringObject("url", value, self._validation_enabled)
         self._url.validate()
 
-    def spec(self):
+    def compose(self):
         return {
             "license": {
-                self._name.spec(),
-                self._url.spec(),
+                self._name.compose(),
+                self._url.compose(),
             },
         }
 
@@ -163,7 +164,7 @@ class SpecInfoObject:
         self.title = title
 
     @property
-    def validation_enabled(self) -> str:
+    def validation_enabled(self) -> bool:
         return self._validation_enabled
 
     @property
@@ -224,22 +225,23 @@ class SpecInfoObject:
         assert isinstance(value, SpecLicenseObject)
         self._license = value
 
-    def spec(self):
+    def compose(self):
         return {
             "info": {
-                self._title.spec(),
-                self._version.spec(),
-                self._description.spec(),
-                self._terms_of_service.spec(),
-                self._contact.spec(),
-                self._license.spec(),
+                self._title.compose(),
+                self._version.compose(),
+                self._description.compose(),
+                self._terms_of_service.compose(),
+                self._contact.compose(),
+                self._license.compose(),
             },
         }
 
+
 class SpecAsyncApiObject:
 
-    _asyncapi: str
-    """ AsyncAPI Version String.
+    _asyncapi: SpecStringObject
+    """ Required. AsyncAPI Version String.
         Specifies the AsyncAPI Specification version being used.
         It can be used by tooling Specifications and clients to interpret the version.
         The structure shall be major.minor.patch, where patch versions
@@ -249,23 +251,137 @@ class SpecAsyncApiObject:
         Patch versions will correspond to patches of this document.
     """
 
-    _id: Optional[str]
+    _id: Optional[SpecStringObject]
     """ Identifier Identifier of the application the AsyncAPI document is defining. """
 
     _info: SpecInfoObject
-    """	Info Object	Required. Provides metadata about the API. The metadata can be used by the clients if needed. """
+    """	Required. Provides metadata about the API. The metadata can be used by the clients if needed. """
 
     # servers: Optional[Dict[str,Server]]
     # """	Servers Object	Provides connection details of servers. """
 
     # channels: Dict[str, Channel]
-    # """	Channels Object	Required The available channels and messages for the API. """
+    # """ Required. Channels Object	Required The available channels and messages for the API. """
 
     # components: Optional[Components]  # $checked, here
     # """	Components Object	An element to hold various schemas for the specification. """
 
-    # _tags: Optional[List[Tag]]
-    # """A list of tags used by the specification with additional metadata. Each tag name in the list MUST be unique. """
+    _tags: Optional[SpecTagListObject]
+    """A list of tags used by the specification with additional metadata. Each tag name in the list MUST be unique. """
 
-    # externalDocs: Optional[ExternalDocumentation]
-    # """Additional external documentation. """
+    _external_docs: Optional[SpecExternalDocumentationObject]
+    """Additional external documentation. """
+
+    _validation_enabled: bool
+
+    def __init__(
+        self,
+        asyncapi_ver: str,
+        info: SpecInfoObject,
+        channels: dict,
+        components: Optional[dict] = None,
+        servers: Optional[dict] = None,
+        app_id: Optional[str] = None,
+        tags: Optional[SpecTagListObject] = None,
+        external_docs: Optional[SpecExternalDocumentationObject] = None,
+        validation_enabled: bool = True,
+    ):
+        self._validation_enabled = validation_enabled
+        self.external_docs = external_docs or SpecEmptyObject()
+        self.components = components or SpecEmptyObject()
+        self.servers = servers or SpecEmptyObject()
+        self.app_id = app_id or SpecEmptyObject()
+        self.tags = tags or SpecEmptyObject()
+        self.asyncapi_ver = asyncapi_ver
+        self.channels = channels
+        self.info = info
+
+    @property
+    def asyncapi_ver(self) -> str:
+        return self._asyncapi_ver.value
+
+    @property
+    def app_id(self) -> str:
+        return self._app_id.value
+
+    @property
+    def info(self) -> SpecInfoObject:
+        return self._info
+
+    @property
+    def channels(self) -> str:
+        return self._channels
+
+    @property
+    def components(self) -> str:
+        return self._components
+
+    @property
+    def servers(self) -> str:
+        return self._servers
+
+    @property
+    def tags(self) -> SpecTagListObject:
+        return self._tags
+
+    @property
+    def external_docs(self) -> SpecExternalDocumentationObject:
+        return self._external_docs
+
+    @property
+    def validation_enabled(self) -> bool:
+        return self._validation_enabled
+
+    @asyncapi_ver.setter
+    def asyncapi_ver(self, value: str):
+        self._asyncapi_ver = SpecStringObject(
+            "asyncapi", value, self._validation_enabled
+        )
+        self._asyncapi_ver.validate()
+
+    @app_id.setter
+    def app_id(self, value: str):
+        self._app_id = SpecStringObject("id", value, self._validation_enabled)
+        self._app_id.validate()
+
+    @info.setter
+    def info(self, value: str):
+        assert isinstance(value, str)
+        self._info = value
+
+    @channels.setter
+    def channels(self, value: str):
+        assert isinstance(value, str)
+        self._channels = value
+
+    @components.setter
+    def components(self, value: str):
+        assert isinstance(value, str)
+        self._components = value
+
+    @servers.setter
+    def servers(self, value: str):
+        assert isinstance(value, str)
+        self._servers = value
+
+    @tags.setter
+    def tags(self, value: str):
+        assert isinstance(value, str)
+        self._tags = value
+
+    @external_docs.setter
+    def external_docs(self, value: str):
+        assert isinstance(value, str)
+        self._external_docs = value
+
+    def compose(self):
+        return {
+            **self._asyncapi_ver.compose(),
+            **self._external_docs.compose(),
+            **self._components.compose(),
+            **self._channels.compose(),
+            **self._servers.compose(),
+            **self._app_id.compose(),
+            **self._tags.compose(),
+            **self._info.compose(),
+        }
